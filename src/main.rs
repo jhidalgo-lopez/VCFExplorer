@@ -48,7 +48,9 @@ fn create_dir_box(initial_path: &str) -> Dialog {
     select_view.add_all_str(list_dir(initial_path));
     select_view.set_on_submit(move |s, selected: &str| {
         if selected == ".." {
-            if let Some(parent) = Path::new(&path).parent() {
+            if let Some(parent) =
+                Path::new(&std::path::absolute(&path).expect("ERROR: Could not get Path!")).parent()
+            {
                 let new_path = parent.to_str().unwrap();
                 s.pop_layer();
                 s.add_layer(create_dir_box(new_path));
