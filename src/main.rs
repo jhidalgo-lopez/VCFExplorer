@@ -1,17 +1,21 @@
-use cursive::{event::Key, menu, traits::*, views::Dialog};
-// use std::fs;
+use cursive::align::HAlign;
+use cursive::{
+    event::Key,
+    menu,
+    traits::*,
+    views::{Dialog, SelectView, TextView},
+};
 use std::path::Path;
 
 fn main() {
     let mut siv = cursive::default();
-    let cwd = "./";
+    let cwd = ".";
     siv.menubar()
         .add_subtree(
             "File",
             menu::Tree::new()
-                // .leaf("Open...", |s| s.add_layer(Dialog::info("Open file!")))
                 .leaf("Open...", move |s| {
-                    s.add_layer(Dialog::info(list_dir(&cwd)))
+                    s.add_layer(create_dir_box(cwd));
                 })
                 .leaf("Close...", |s| s.add_layer(Dialog::info("Close file!"))),
         )
@@ -23,7 +27,7 @@ fn main() {
                     for i in 1..23 {
                         tree.add_item(menu::Item::leaf(format!("Chromosome {i}"), move |s| {
                             s.add_layer(Dialog::info(format!("Filtering by Chromosome {i}")))
-                        }))
+                        }));
                     }
                 }),
             ),
@@ -36,23 +40,49 @@ fn main() {
         "Welcome to my Rust project!\nPress q to exit or Esc to access the menus.\nEnjoy it!",
     ));
     siv.run();
-    list_dir(cwd);
 }
 
-fn list_dir(path_str: &str) -> String {
-    let actual_path = Path::new(&path_str);
-    let dirfiles = actual_path.read_dir().unwrap();
-    let mut files = Vec::new();
-    for entry in dirfiles {
-        match entry {
-            Ok(entry) => {
-                println!("Processing entry: {:?}", entry.path());
-                files.push(entry.path().as_os_str().to_str().unwrap().to_string());
+fn create_dir_box(initial_path: &str) -> Dialog {
+    let path = initial_path.to_string();
+    let mut select_view = SelectView::new().h_align(HAlign::Center);
+    select_view.add_all_str(list_dir(initial_path));
+    select_view.set_on_submit(move |s, selected: &str| {
+        if selected == ".." {
+            if let Some(parent) = Path::new(&path).parent() {
+                let new_path = parent.to_str().unwrap();
+                s.pop_layer();
+                s.add_layer(create_dir_box(new_path));
             }
-            Err(e) => {
-                println!("  entry error: {:?}", e);
+        } else {
+            let selected_path = Path::new(&path).join(selected);
+            if selected_path.is_dir() {
+                s.pop_layer();
+                s.add_layer(create_dir_box(selected_path.to_str().unwrap()));
+            } else {
+                let text = format!("You opened file: {}", selected_path.display());
+                s.add_layer(Dialog::around(TextView::new(text)).button("OK", |s| {
+                    s.pop_layer();
+                    s.pop_layer();
+                }));
+            }
+        }
+    });
+    Dialog::around(select_view)
+        .title(format!("Browsing: {}", initial_path))
+        .button("Cancel", |s| {
+            s.pop_layer();
+        })
+}
+
+fn list_dir(path_str: &str) -> Vec<String> {
+    let path = Path::new(path_str);
+    let mut entries = vec!["..".to_string()];
+    if let Ok(read_dir) = path.read_dir() {
+        for entry in read_dir.flatten() {
+            if let Some(name) = entry.file_name().to_str() {
+                entries.push(name.to_string());
             }
         }
     }
-    files.join("\n")
+    entries
 }
