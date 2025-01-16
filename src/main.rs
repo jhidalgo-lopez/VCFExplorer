@@ -6,7 +6,7 @@ use cursive::{
     traits::*,
     views::{Dialog, SelectView, TextView},
 };
-use rust_htslib::bcf::{Read, Reader};
+use rust_htslib::bcf::Reader;
 use std::path::Path;
 fn main() {
     let mut siv = add_ui();
@@ -149,5 +149,5 @@ fn add_ui() -> CursiveRunnable {
 }
 
 fn read_vcf(path_str: &str) {
-    let mut bcf = Reader::from_path(path_str).expect("Error opening file: {path_str:?}.");
+    let bcf = Reader::from_path(path_str).expect("Error opening file: {path_str:?}.");
 }
