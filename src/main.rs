@@ -6,8 +6,8 @@ use cursive::{
     traits::*,
     views::{Dialog, SelectView, TextView},
 };
+use rust_htslib::bcf::{Read, Reader};
 use std::path::Path;
-
 fn main() {
     let mut siv = add_ui();
     siv.run();
@@ -61,6 +61,7 @@ fn create_dir_box(initial_path: &str, file_list: Vec<String>) -> (Dialog, Vec<St
                 s.set_user_data(updated_file_list);
                 s.add_layer(new_layer);
             } else {
+                read_vcf(selected_path.to_str().unwrap());
                 let text = format!("You opened file: {}", selected_path.display());
                 new_file_list.push(selected_path.to_str().unwrap().into());
                 s.set_user_data(new_file_list);
@@ -145,4 +146,8 @@ fn add_ui() -> CursiveRunnable {
         "Welcome to my Rust project!\nPress q to exit or Esc to access the menus.\nEnjoy it!",
     ));
     siv
+}
+
+fn read_vcf(path_str: &str) {
+    let mut bcf = Reader::from_path(path_str).expect("Error opening file: {path_str:?}.");
 }
