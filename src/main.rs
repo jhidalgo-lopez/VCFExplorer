@@ -98,10 +98,9 @@ fn update_table(file_list: &Vec<String>) -> LinearLayout {
     // Table view
     let mut vcf_data_all: Vec<VcfRecord> = Vec::new();
     for file in file_list {
-        vcf_data_all.append(&mut read_vcf(&file));
+        vcf_data_all.append(&mut read_vcf(file));
     }
-    let table_view = create_table(vcf_data_all);
-    table_view
+    create_table(vcf_data_all)
 }
 fn list_dir(path_str: &str) -> Vec<String> {
     let path = Path::new(path_str);
@@ -222,19 +221,6 @@ fn create_table(records: Vec<VcfRecord>) -> LinearLayout {
 }
 
 // VCF SECTION
-// fn read_vcf(path_str: &str) {
-//     let mut bcf = Reader::from_path(path_str).expect("Error opening file: {path_str:?}.");
-//     for (_, record_result) in bcf.records().enumerate() {
-//         let record = record_result.expect("Failed to read record");
-//         let mut s = String::new();
-//         for allele in record.alleles() {
-//             for base in allele {
-//                 s.push(char::from(*base))
-//             }
-//         }
-//         // println!("Locus: {}, Alleles: {}", record.pos(), s)
-//     }
-// }
 // Struct for storing VCF record information
 #[derive(Debug)]
 struct VcfRecord {
@@ -248,41 +234,33 @@ struct VcfRecord {
 // Function to read VCF data
 fn read_vcf(path_str: &str) -> Vec<VcfRecord> {
     let mut records = Vec::new();
-    // let path = Path::new(path_str);
-    // if !path.exists() {
-    //     println!("VCF file not found: {}", path_str);
-    //     return records;
-    // }
     let mut bcf = Reader::from_path(path_str).expect("Error opening file: {path_str:?}.");
-    for result in bcf.records() {
-        // let result = result.expect("Failed to read record");
-        if let Ok(record) = result {
-            let mut chromosome = String::new();
-            if let Ok(chr) = record.header().rid2name(record.rid().unwrap()) {
-                for c in chr {
-                    chromosome.push(*c as char);
-                }
+    for record in bcf.records().flatten() {
+        let mut chromosome = String::new();
+        if let Ok(chr) = record.header().rid2name(record.rid().unwrap()) {
+            for c in chr {
+                chromosome.push(*c as char);
             }
-
-            let position = record.pos();
-            let id = record.rid().unwrap();
-            let mut ref_allele = String::new();
-            for allele in record.alleles()[0] {
-                ref_allele.push(char::from(*allele))
-            }
-            let mut alt_allele = String::new();
-            for allele in record.alleles()[1] {
-                alt_allele.push(char::from(*allele))
-            }
-            let entry = VcfRecord {
-                chromosome,
-                position,
-                id,
-                ref_allele,
-                alt_allele,
-            };
-            records.push(entry);
         }
+
+        let position = record.pos();
+        let id = record.rid().unwrap();
+        let mut ref_allele = String::new();
+        for allele in record.alleles()[0] {
+            ref_allele.push(char::from(*allele))
+        }
+        let mut alt_allele = String::new();
+        for allele in record.alleles()[1] {
+            alt_allele.push(char::from(*allele))
+        }
+        let entry = VcfRecord {
+            chromosome,
+            position,
+            id,
+            ref_allele,
+            alt_allele,
+        };
+        records.push(entry);
     }
     records
 }
