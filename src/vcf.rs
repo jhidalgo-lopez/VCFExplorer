@@ -6,7 +6,8 @@ use rust_htslib::bcf::{Read, Reader};
 pub struct VcfRecord {
     pub chromosome: String,
     pub position: i64,
-    pub id: u32,
+    pub id: Vec<u8>,
+    pub qual: f32,
     pub ref_allele: String,
     pub alt_allele: String,
 }
@@ -24,7 +25,8 @@ pub fn read_vcf(path_str: &str) -> Vec<VcfRecord> {
         }
 
         let position = record.pos();
-        let id = record.rid().unwrap();
+        let id = record.id();
+        let qual = record.qual();
         let mut ref_allele = String::new();
         for allele in record.alleles()[0] {
             ref_allele.push(char::from(*allele))
@@ -37,6 +39,7 @@ pub fn read_vcf(path_str: &str) -> Vec<VcfRecord> {
             chromosome,
             position,
             id,
+            qual,
             ref_allele,
             alt_allele,
         };

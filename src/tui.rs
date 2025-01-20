@@ -66,7 +66,6 @@ fn create_dir_box(initial_path: &str, file_list: Vec<String>) -> (Dialog, Vec<St
                     let new_file_list = s.take_user_data::<Vec<String>>().unwrap_or_default();
                     s.pop_layer();
                     s.pop_layer();
-                    // s.pop_layer();
                     let table_view = update_table(&new_file_list);
                     s.set_user_data(new_file_list);
                     s.add_layer(
@@ -189,6 +188,11 @@ pub fn create_table(records: Vec<VcfRecord>) -> LinearLayout {
             )
             .child(TextView::new("ID").h_align(HAlign::Center).fixed_width(5))
             .child(
+                TextView::new("Quality")
+                    .h_align(HAlign::Center)
+                    .fixed_width(10),
+            )
+            .child(
                 TextView::new("Ref Allele")
                     .h_align(HAlign::Center)
                     .fixed_width(20),
@@ -200,7 +204,7 @@ pub fn create_table(records: Vec<VcfRecord>) -> LinearLayout {
             ),
     );
 
-    layout.add_child(TextView::new("-".repeat(70)));
+    layout.add_child(TextView::new("-".repeat(80)));
 
     // Add records to the table
     for record in records {
@@ -217,9 +221,14 @@ pub fn create_table(records: Vec<VcfRecord>) -> LinearLayout {
                         .min_width(11),
                 )
                 .child(
-                    TextView::new(record.id.to_string())
+                    TextView::new(String::from_utf8(record.id).expect("Could not read entry ID."))
                         .h_align(HAlign::Center)
                         .min_width(5),
+                )
+                .child(
+                    TextView::new(record.qual.to_string())
+                        .h_align(HAlign::Center)
+                        .min_width(10),
                 )
                 .child(
                     TextView::new(record.ref_allele)
