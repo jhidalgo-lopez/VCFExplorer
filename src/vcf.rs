@@ -57,6 +57,7 @@ pub fn read_vcf(path_str: &str) -> Vec<VcfRecord> {
     }
     records
 }
+
 pub fn filter_vcf(records: &[VcfRecord], filters: &FilterConfig) -> Vec<VcfRecord> {
     records
         .iter()
@@ -80,4 +81,49 @@ pub fn filter_vcf(records: &[VcfRecord], filters: &FilterConfig) -> Vec<VcfRecor
         })
         .cloned()
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_vcf_uncompressed() {
+        let records = read_vcf("testfiles/1kGP-subset.vcf");
+        assert_eq!(records.len(), 306);
+        let first_record = &records[0];
+        assert_eq!(first_record.chromosome, "13");
+        assert_eq!(first_record.position, 32872836);
+        assert_eq!(first_record.id, b".");
+        assert_eq!(first_record.quality, 495.23);
+        assert_eq!(first_record.ref_allele, "A");
+        assert_eq!(first_record.alt_allele, "C");
+    }
+
+    #[test]
+    fn test_read_vcf_compressed() {
+        let records = read_vcf("testfiles/1kGP-subset.vcf.gz");
+        assert_eq!(records.len(), 306);
+        let first_record = &records[0];
+        assert_eq!(first_record.chromosome, "13");
+        assert_eq!(first_record.position, 32872836);
+        assert_eq!(first_record.id, b".");
+        assert_eq!(first_record.quality, 495.23);
+        assert_eq!(first_record.ref_allele, "A");
+        assert_eq!(first_record.alt_allele, "C");
+    }
+
+    #[test]
+    fn test_filter_vcf() {
+        let records = read_vcf("testfiles/1kGP-subset.vcf");
+        let filter = FilterConfig {
+            chr: None,
+            pos: Some((32872836, 32877888)),
+            qual: None,
+            ref_allele: None,
+            alt_allele: None,
+        };
+        let filtered_records = filter_vcf(&records, &filter);
+        assert_eq!(filtered_records.len(), 14);
+    }
 }
