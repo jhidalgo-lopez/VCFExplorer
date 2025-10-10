@@ -226,7 +226,7 @@ pub fn create_table(records: Vec<VcfRecord>) -> LinearLayout {
                         .min_width(5),
                 )
                 .child(
-                    TextView::new(record.qual.to_string())
+                    TextView::new(record.quality.to_string())
                         .h_align(HAlign::Center)
                         .min_width(10),
                 )
