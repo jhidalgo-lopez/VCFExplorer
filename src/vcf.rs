@@ -82,6 +82,16 @@ pub fn filter_vcf(records: &[VcfRecord], filters: &FilterConfig) -> Vec<VcfRecor
                     }
                 }
             }
+            if let Some(reference) = &filters.ref_allele {
+                if record.ref_allele != *reference {
+                    return false;
+                }
+            }
+            if let Some(alternative) = &filters.alt_allele {
+                if record.alt_allele != *alternative {
+                    return false;
+                }
+            }
             true
         })
         .cloned()

@@ -310,6 +310,59 @@ pub fn add_ui() -> CursiveRunnable {
                             }),
                     );
                 })
+                // "Genotype" filter menu item.
+                .leaf("Genotype", |s| {
+                    s.add_layer(
+                        Dialog::new()
+                            .title("Filter by Genotype")
+                            .content(
+                                LinearLayout::vertical()
+                                    .child(TextView::new("Reference allele (optional):"))
+                                    .child(EditView::new().with_name("ref_allele"))
+                                    .child(TextView::new("Alternative allele (optional):"))
+                                    .child(EditView::new().with_name("alt_allele")),
+                            )
+                            .button("Filter", |s| {
+                                // Get ref_allele and alt_allele values.
+                                let ref_allele = s
+                                    .call_on_name("ref_allele", |view: &mut EditView| {
+                                        view.get_content()
+                                    })
+                                    .unwrap();
+
+                                let alt_allele = s
+                                    .call_on_name("alt_allele", |view: &mut EditView| {
+                                        view.get_content()
+                                    })
+                                    .unwrap_or_default();
+
+                                // Apply the filter if reference or alternative allelle is provided
+                                if !ref_allele.is_empty() || !alt_allele.is_empty() {
+                                    let app_state = s.user_data::<AppState>().unwrap();
+                                    if !ref_allele.is_empty() {
+                                        app_state.filters.ref_allele = Some(ref_allele.to_string());
+                                    } else {
+                                        app_state.filters.ref_allele = None;
+                                    }
+                                    if !alt_allele.is_empty() {
+                                        app_state.filters.alt_allele = Some(alt_allele.to_string());
+                                    } else {
+                                        app_state.filters.alt_allele = None;
+                                    }
+                                    let filtered_records =
+                                        filter_vcf(&app_state.all_records, &app_state.filters);
+                                    app_state.displayed_records = filtered_records;
+                                    s.pop_layer();
+                                    update_vcf_view(s);
+                                } else {
+                                    s.add_layer(Dialog::info("Invalid quality format!"));
+                                }
+                            })
+                            .button("Cancel", |s| {
+                                s.pop_layer();
+                            }),
+                    );
+                })
                 // "Clear All" menu item to reset all filters.
                 .leaf("Clear All", |s| {
                     let app_state = s.user_data::<AppState>().unwrap();
