@@ -13,11 +13,11 @@ pub struct VcfRecord {
 }
 
 // Struc to hold the Filter values
-#[derive(Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct FilterConfig {
     pub chr: Option<String>,
     pub pos: Option<(i64, i64)>,
-    pub qual: Option<(f32, f32)>,
+    pub qual: Option<(f32, Option<f32>)>,
     pub ref_allele: Option<String>,
     pub alt_allele: Option<String>,
 }
@@ -73,8 +73,13 @@ pub fn filter_vcf(records: &[VcfRecord], filters: &FilterConfig) -> Vec<VcfRecor
                 }
             }
             if let Some((min_qual, max_qual)) = &filters.qual {
-                if record.quality < *min_qual || record.quality > *max_qual {
+                if record.quality < *min_qual {
                     return false;
+                }
+                if let Some(max_qual_val) = max_qual {
+                    if record.quality > *max_qual_val {
+                        return false;
+                    }
                 }
             }
             true
