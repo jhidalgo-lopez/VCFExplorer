@@ -1,13 +1,17 @@
 mod tui;
 mod vcf;
 use simplelog::*;
-use std::fs::File;
+use std::fs::OpenOptions;
 
 fn main() {
     CombinedLogger::init(vec![WriteLogger::new(
         LevelFilter::Info,
         Config::default(),
-        File::create("vcf_explorer.log").unwrap(),
+        OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open("vcf_explorer.log")
+            .unwrap(),
     )])
     .unwrap();
 
