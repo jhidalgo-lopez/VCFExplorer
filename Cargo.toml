@@ -1,10 +1,21 @@
 [package]
-name = "rustp"
+name = "vcfexplorer"
 version = "0.1.0"
 edition = "2021"
+description = "A terminal-based VCF (Variant Call Format) file viewer and explorer"
+authors = ["Chema Hidalgo"]
+license = "GPL-3.0-or-later"
+repository = "https://github.com/jhidalgo-lopez/VCFExplorer"
+homepage = "https://github.com/jhidalgo-lopez/VCFExplorer"
+readme = "README.md"
 
 [dependencies]
 cursive = "0.21.1"
-log = "0.4.28"
+log = "0.4.32"
 rust-htslib = "1.0.0"
 simplelog = "0.12.2"
+
+[profile.release]
+lto = true
+strip = true
+opt-level = "s"
