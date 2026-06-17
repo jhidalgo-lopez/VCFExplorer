@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use rust_htslib::bcf::{Read, Reader};
 
 // VCF SECTION
@@ -25,14 +27,14 @@ pub struct FilterConfig {
 // Function to read VCF data
 pub fn read_vcf(path_str: &str) -> Vec<VcfRecord> {
     let mut records = Vec::new();
-    let mut bcf = Reader::from_path(path_str).expect("Error opening file: {path_str:?}.");
+    let mut bcf = Reader::from_path(path_str).expect("Error opening file: {path_str}.");
     for record in bcf.records().flatten() {
-        let mut chromosome = String::new();
-        if let Ok(chr) = record.header().rid2name(record.rid().unwrap()) {
-            for c in chr {
-                chromosome.push(*c as char);
+        let chromosome = match record.header().rid2name(record.rid().unwrap()) {
+            Ok(chr) => {
+                String::from_str(std::str::from_utf8(chr).unwrap_or_default()).unwrap_or_default()
             }
-        }
+            Err(_) => String::new(),
+        };
 
         let position = record.pos() + 1;
         let id = record.id();
