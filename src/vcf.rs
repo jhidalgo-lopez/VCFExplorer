@@ -14,7 +14,7 @@ pub struct VcfRecord {
     pub alt_allele: Vec<String>,
 }
 
-// Struc to hold the Filter values
+// Struct to hold the Filter values
 #[derive(Clone, Debug, Default)]
 pub struct FilterConfig {
     pub chr: Option<String>,
@@ -26,35 +26,34 @@ pub struct FilterConfig {
 
 // Function to read VCF data
 pub fn read_vcf(path_str: &str) -> Vec<VcfRecord> {
-    let mut records = Vec::new();
     let mut bcf = Reader::from_path(path_str).expect("Error opening file: {path_str}.");
-    for record in bcf.records().flatten() {
-        let chromosome = match record.header().rid2name(record.rid().unwrap()) {
-            Ok(chr) => {
-                String::from_str(std::str::from_utf8(chr).unwrap_or_default()).unwrap_or_default()
-            }
-            Err(_) => String::new(),
-        };
+    bcf.records()
+        .flatten()
+        .map(|record| {
+            let chromosome = match record.header().rid2name(record.rid().unwrap()) {
+                Ok(chr) => String::from_str(std::str::from_utf8(chr).unwrap_or_default())
+                    .unwrap_or_default(),
+                Err(_) => String::new(),
+            };
 
-        let position = record.pos() + 1;
-        let id = String::from_utf8(record.id()).unwrap_or_default();
-        let quality = record.qual();
-        let ref_allele = String::from_utf8_lossy(record.alleles()[0]).into_owned();
-        let alt_allele: Vec<String> = record.alleles()[1..]
-            .iter()
-            .map(|x| String::from_utf8_lossy(x).into_owned())
-            .collect();
-        let entry = VcfRecord {
-            chromosome,
-            position,
-            id,
-            quality,
-            ref_allele,
-            alt_allele,
-        };
-        records.push(entry);
-    }
-    records
+            let position = record.pos() + 1;
+            let id = String::from_utf8(record.id()).unwrap_or_default();
+            let quality = record.qual();
+            let ref_allele = String::from_utf8_lossy(record.alleles()[0]).into_owned();
+            let alt_allele: Vec<String> = record.alleles()[1..]
+                .iter()
+                .map(|x| String::from_utf8_lossy(x).into_owned())
+                .collect();
+            VcfRecord {
+                chromosome,
+                position,
+                id,
+                quality,
+                ref_allele,
+                alt_allele,
+            }
+        })
+        .collect()
 }
 
 pub fn filter_vcf(records: &[VcfRecord], filters: &FilterConfig) -> Vec<VcfRecord> {
