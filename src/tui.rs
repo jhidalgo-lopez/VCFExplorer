@@ -434,11 +434,9 @@ pub fn create_table(records: &[VcfRecord]) -> LinearLayout {
                         .min_width(11),
                 )
                 .child(
-                    TextView::new(
-                        String::from_utf8(record.id.clone()).expect("Could not read entry ID."),
-                    )
-                    .h_align(HAlign::Center)
-                    .min_width(5),
+                    TextView::new(record.id.clone())
+                        .h_align(HAlign::Center)
+                        .min_width(5),
                 )
                 .child(
                     TextView::new(record.quality.to_string())

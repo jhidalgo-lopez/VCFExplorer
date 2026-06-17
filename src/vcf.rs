@@ -8,7 +8,7 @@ use rust_htslib::bcf::{Read, Reader};
 pub struct VcfRecord {
     pub chromosome: String,
     pub position: i64,
-    pub id: Vec<u8>,
+    pub id: String,
     pub quality: f32,
     pub ref_allele: String,
     pub alt_allele: String,
@@ -37,7 +37,7 @@ pub fn read_vcf(path_str: &str) -> Vec<VcfRecord> {
         };
 
         let position = record.pos() + 1;
-        let id = record.id();
+        let id = String::from_utf8(record.id()).unwrap_or_default();
         let quality = record.qual();
         let mut ref_allele = String::new();
         for allele in record.alleles()[0] {
@@ -111,7 +111,7 @@ mod tests {
         let first_record = &records[0];
         assert_eq!(first_record.chromosome, "13");
         assert_eq!(first_record.position, 32872836);
-        assert_eq!(first_record.id, b".");
+        assert_eq!(first_record.id, ".");
         assert_eq!(first_record.quality, 495.23);
         assert_eq!(first_record.ref_allele, "A");
         assert_eq!(first_record.alt_allele, "C");
@@ -124,7 +124,7 @@ mod tests {
         let first_record = &records[0];
         assert_eq!(first_record.chromosome, "13");
         assert_eq!(first_record.position, 32872836);
-        assert_eq!(first_record.id, b".");
+        assert_eq!(first_record.id, ".");
         assert_eq!(first_record.quality, 495.23);
         assert_eq!(first_record.ref_allele, "A");
         assert_eq!(first_record.alt_allele, "C");
