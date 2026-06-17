@@ -25,6 +25,17 @@ struct AppState {
 
 // UI Section
 
+// Helper function to reload the files
+fn reload_files(app_state: &mut AppState) {
+    // Re-read all VCF records from the remaining open files.
+    let mut vcf_data_all: Vec<VcfRecord> = Vec::new();
+    for file in &app_state.file_paths {
+        vcf_data_all.append(&mut crate::vcf::read_vcf(file));
+    }
+    app_state.all_records = vcf_data_all;
+    app_state.displayed_records = app_state.all_records.clone();
+}
+
 // Creates a dialog box that allows the user to select an opened file to close.
 fn close_box(s: &mut cursive::Cursive) {
     // Create a SelectView to list the currently opened files.
@@ -37,13 +48,8 @@ fn close_box(s: &mut cursive::Cursive) {
         let app_state = s.user_data::<AppState>().unwrap();
         // Remove the selected file from the list of file paths.
         app_state.file_paths.retain(|element| element != selected);
-        // Re-read all VCF records from the remaining open files.
-        let mut vcf_data_all: Vec<VcfRecord> = Vec::new();
-        for file in &app_state.file_paths {
-            vcf_data_all.append(&mut crate::vcf::read_vcf(file));
-        }
-        app_state.all_records = vcf_data_all;
-        app_state.displayed_records = app_state.all_records.clone();
+        // Reload files without the closed one
+        reload_files(app_state);
         // Close the dialog and update the main VCF view.
         s.pop_layer();
         update_vcf_view(s);
@@ -90,13 +96,7 @@ fn create_dir_box(s: &mut cursive::Cursive, initial_path: &str) {
                 app_state
                     .file_paths
                     .push(selected_path.to_str().unwrap().into());
-                // Re-read VCF data from all currently opened files.
-                let mut vcf_data_all: Vec<VcfRecord> = Vec::new();
-                for file in &app_state.file_paths {
-                    vcf_data_all.append(&mut crate::vcf::read_vcf(file));
-                }
-                app_state.all_records = vcf_data_all;
-                app_state.displayed_records = app_state.all_records.clone();
+                reload_files(app_state);
                 // Show a confirmation dialog.
                 s.add_layer(Dialog::around(TextView::new(text)).button("OK", |s| {
                     s.pop_layer(); // Close confirmation dialog.
