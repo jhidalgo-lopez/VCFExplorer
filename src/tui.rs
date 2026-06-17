@@ -135,15 +135,14 @@ fn update_vcf_view(s: &mut cursive::Cursive) {
 
 // Lists the contents of a directory, including a ".." entry for navigation.
 fn list_dir(path_str: &str) -> Vec<String> {
-    let path = Path::new(path_str);
     let mut entries = vec!["..".to_string()]; // Always add parent directory option.
-    match path.read_dir() {
-        Ok(_read_dir) => {
-            for entry in _read_dir.flatten() {
-                if let Some(name) = entry.file_name().to_str() {
-                    entries.push(name.to_string());
-                }
-            }
+    match Path::new(path_str).read_dir() {
+        Ok(read_dir) => {
+            entries.extend(
+                read_dir
+                    .flatten()
+                    .map(|entry| entry.file_name().into_string().unwrap_or_default()),
+            );
         }
         Err(_) => {
             // Log an error if the directory can't be read.
