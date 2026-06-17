@@ -449,7 +449,7 @@ pub fn create_table(records: &[VcfRecord]) -> LinearLayout {
                         .min_width(20),
                 )
                 .child(
-                    TextView::new(record.alt_allele.clone())
+                    TextView::new(record.alt_allele.clone().join(", "))
                         .h_align(HAlign::Center)
                         .min_width(20),
                 ),

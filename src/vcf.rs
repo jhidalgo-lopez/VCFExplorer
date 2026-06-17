@@ -11,7 +11,7 @@ pub struct VcfRecord {
     pub id: String,
     pub quality: f32,
     pub ref_allele: String,
-    pub alt_allele: String,
+    pub alt_allele: Vec<String>,
 }
 
 // Struc to hold the Filter values
@@ -39,14 +39,11 @@ pub fn read_vcf(path_str: &str) -> Vec<VcfRecord> {
         let position = record.pos() + 1;
         let id = String::from_utf8(record.id()).unwrap_or_default();
         let quality = record.qual();
-        let mut ref_allele = String::new();
-        for allele in record.alleles()[0] {
-            ref_allele.push(char::from(*allele))
-        }
-        let mut alt_allele = String::new();
-        for allele in record.alleles()[1] {
-            alt_allele.push(char::from(*allele))
-        }
+        let ref_allele = String::from_utf8_lossy(record.alleles()[0]).into_owned();
+        let alt_allele: Vec<String> = record.alleles()[1..]
+            .iter()
+            .map(|x| String::from_utf8_lossy(x).into_owned())
+            .collect();
         let entry = VcfRecord {
             chromosome,
             position,
@@ -90,7 +87,7 @@ pub fn filter_vcf(records: &[VcfRecord], filters: &FilterConfig) -> Vec<VcfRecor
                 }
             }
             if let Some(alternative) = &filters.alt_allele {
-                if record.alt_allele != *alternative {
+                if !record.alt_allele.contains(alternative) {
                     return false;
                 }
             }
@@ -114,7 +111,7 @@ mod tests {
         assert_eq!(first_record.id, ".");
         assert_eq!(first_record.quality, 495.23);
         assert_eq!(first_record.ref_allele, "A");
-        assert_eq!(first_record.alt_allele, "C");
+        assert_eq!(first_record.alt_allele, vec!["C"]);
     }
 
     #[test]
@@ -127,7 +124,7 @@ mod tests {
         assert_eq!(first_record.id, ".");
         assert_eq!(first_record.quality, 495.23);
         assert_eq!(first_record.ref_allele, "A");
-        assert_eq!(first_record.alt_allele, "C");
+        assert_eq!(first_record.alt_allele, vec!["C"]);
     }
 
     #[test]
@@ -142,5 +139,18 @@ mod tests {
         };
         let filtered_records = filter_vcf(&records, &filter);
         assert_eq!(filtered_records.len(), 14);
+    }
+    #[test]
+    fn test_read_vcf_multi_allelic() {
+        let records = read_vcf("testfiles/1kGP-subset.vcf");
+        // Record at index 245 is the multi-allelic site:
+        //   REF=CAA, ALT=CA,C, QUAL=924.43
+        let record = &records[245];
+        assert_eq!(record.chromosome, "13");
+        assert_eq!(record.position, 32966726);
+        assert_eq!(record.id, ".");
+        assert_eq!(record.quality, 924.43);
+        assert_eq!(record.ref_allele, "CAA");
+        assert_eq!(record.alt_allele, vec!["CA", "C"]);
     }
 }
