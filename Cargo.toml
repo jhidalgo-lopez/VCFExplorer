@@ -3,12 +3,8 @@ name = "rustp"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 cursive = "0.21.1"
 log = "0.4.28"
-rust-htslib = "0.49.0"
+rust-htslib = "1.0.0"
 simplelog = "0.12.2"
-# noodles = { version = "0.87.0", features = ["vcf"] }
-# vcf = "0.6.1"
