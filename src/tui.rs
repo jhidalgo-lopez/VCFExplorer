@@ -355,7 +355,7 @@ pub fn add_ui() -> CursiveRunnable {
                                     s.pop_layer();
                                     update_vcf_view(s);
                                 } else {
-                                    s.add_layer(Dialog::info("Invalid quality format!"));
+                                    s.add_layer(Dialog::info("Invalid genotype format!"));
                                 }
                             })
                             .button("Cancel", |s| {
